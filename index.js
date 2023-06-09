@@ -1,8 +1,8 @@
+require('dotenv').config();
 const http = require('http');
 const app=require("./app");
 const server=http.createServer(app);
-const{API_PORT}=process.env;
-const port = 8000;
+const port=process.env.API_PORT;
 server.listen(port,()=>{
     console.log(`listehing at ${port}`);
 });
