@@ -5,11 +5,11 @@ const express = require('express');
 const User = require('./model/user');
 const app = express();
 app.use(express.json);
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     console.log("hello world");
     res.send("hi");
  })
- app.post('/',(req,res)=>{
+ app.post("/",(req,res)=>{
     console.log("hi");
  })
 app.post("/register", async (req, res) => {
