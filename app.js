@@ -4,7 +4,10 @@ require("./config/database").connect();
 const express = require('express');
 const User = require('./model/user');
 const app = express();
-app.use(express.json);
+
+//here i fu*k the ()
+app.use(express.json());
+
 app.get("/", (req, res) => {
     console.log("hello world");
     res.send("hi");
