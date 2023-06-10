@@ -4,39 +4,43 @@ require("./config/database").connect();
 const express = require('express');
 const User = require('./model/user');
 const app = express();
+const jwt = require('jsonwebtoken')
+const auth= require('./middleware/auth');
 
-//here i fu*k the ()
+//middleware userd
 app.use(express.json());
 
-app.get("/", (req, res) => {
+//routes
+app.get("/home", auth, (req, res) => {
     console.log("hello world");
-    res.send("hi");
- })
- app.post("/",(req,res)=>{
-    console.log("hi");
- })
+    res.status(200).send("Welcome 🙌 ");
+})
+app.post("/", (req, res) => {
+    console.log("hi sir");
+})
+
 app.post("/register", async (req, res) => {
     try {
-        const { first_name, last_name, email, password } = req.body;
-        if (!(email && first_name && last_name && password)) res.status(400).send("fill all the details");
-        const oldUser = await User.findOnd({ email });
+        const { firstName, lastName, email, password } = req.body;
+        if (!(email && firstName && lastName && password)) res.status(400).send("fill all the details");
+        const oldUser = await User.findOne({ email });
         if (oldUser) {
             return res.status(409).send("User alredy exist");
         }
         encryptPassword = await bcrypt.hash(password, 10);
-        const user = await create.User({
-            first_name,
-            last_name,
+        const newUser = await User.create({
+            firstName,
+            lastName,
             email: email.toLowerCase(),
             password: encryptPassword,
         });
         const token = jwt.sign(
-            { user_id: user._id, email },
+            { user_id: newUser._id, email },
             process.env.TOKEN_KEY,
             { expiresIn: "2h" }
         )
-        user.token = token;
-        res.status(201).json(user);
+        newUser.token = token;
+        res.status(201).json(newUser);
     }
     catch (err) {
         console.log(err);
@@ -50,22 +54,23 @@ app.post("/login", async (req, res) => {
         if (!(email && password)) {
             res.status(400).send("All input required");
         }
-        const user = await User.findOne({ email });
+        const newUser = await User.findOne({ email });
 
-        if (user && (await bcrypt.compare(password, user.password))) {
+        if (newUser && (await bcrypt.compare(password, newUser.password))) {
 
             const token = jwt.sign(
-                { user_id: user._id, email },
+                { user_id: newUser._id, email },
                 process.env.TOKEN_KEY,
                 {
                     expiresIn: "2h",
                 }
             );
 
-            user.token = token;
+            newUser.token = token;
+            res.status(200).json(newUser);
 
-            res.status(200).json(user);
         }
+        else
         res.status(400).send("Invalid Credentials");
 
     }
