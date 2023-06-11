@@ -5,12 +5,14 @@ const express = require('express');
 const User = require('./model/user');
 const app = express();
 const jwt = require('jsonwebtoken')
-const auth= require('./middleware/auth');
+const auth = require('./middleware/auth');
+const cookieParser = require('cookie-parser');
 
 //middleware userd
 app.use(express.json());
+app.use(cookieParser());
 
-//routes
+//routesq
 app.get("/home", auth, (req, res) => {
     console.log("hello world");
     res.status(200).send("Welcome 🙌 ");
@@ -40,7 +42,11 @@ app.post("/register", async (req, res) => {
             { expiresIn: "2h" }
         )
         newUser.token = token;
-        res.status(201).json(newUser);
+        res.status(201)
+            .cookie("token", token, {
+                httpOnly: true,
+            })
+            .send(newUser);
     }
     catch (err) {
         console.log(err);
@@ -67,11 +73,15 @@ app.post("/login", async (req, res) => {
             );
 
             newUser.token = token;
-            res.status(200).json(newUser);
-
+            res.status(200).json(newUser)
+                .cookie("token", token,
+                    {
+                        httpOnly: true,
+                    }
+                );
         }
         else
-        res.status(400).send("Invalid Credentials");
+            res.status(400).send("Invalid Credentials");
 
     }
     catch (err) {
