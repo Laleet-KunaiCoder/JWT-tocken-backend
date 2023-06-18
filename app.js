@@ -1,91 +1,28 @@
-require("dotenv").config();
-const bcrypt = require('bcryptjs')
-require("./config/database").connect();
+require('dotenv').config();
+require('./config/database').connect();
 const express = require('express');
-const User = require('./model/user');
 const app = express();
-const jwt = require('jsonwebtoken')
 const auth = require('./middleware/auth');
 const cookieParser = require('cookie-parser');
-
+const { register, login, getall } = require('./controllers/auth');
+const cors = require('cors');
 //middleware userd
 app.use(express.json());
 app.use(cookieParser());
-
+app.use(cors());
 //routesq
-app.get("/home", auth, (req, res) => {
-    console.log("hello world");
-    res.status(200).send("Welcome 🙌 ");
-})
-app.post("/", (req, res) => {
-    console.log("hi sir");
-})
-
-app.post("/register", async (req, res) => {
-    try {
-        const { firstName, lastName, email, password } = req.body;
-        if (!(email && firstName && lastName && password)) res.status(400).send("fill all the details");
-        const oldUser = await User.findOne({ email });
-        if (oldUser) {
-            return res.status(409).send("User alredy exist");
-        }
-        encryptPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({
-            firstName,
-            lastName,
-            email: email.toLowerCase(),
-            password: encryptPassword,
-        });
-        const token = jwt.sign(
-            { user_id: newUser._id, email },
-            process.env.TOKEN_KEY,
-            { expiresIn: "2h" }
-        )
-        newUser.token = token;
-        res.status(201)
-            .cookie("token", token, {
-                httpOnly: true,
-            })
-            .send(newUser);
-    }
-    catch (err) {
-        console.log(err);
-    }
+app.get('/', auth, (req, res) => {
+  console.log('hello world');
+  res.status(200).send('Welcome 🙌 ');
 });
 
-// Login
-app.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!(email && password)) {
-            res.status(400).send("All input required");
-        }
-        const newUser = await User.findOne({ email });
-
-        if (newUser && (await bcrypt.compare(password, newUser.password))) {
-
-            const token = jwt.sign(
-                { user_id: newUser._id, email },
-                process.env.TOKEN_KEY,
-                {
-                    expiresIn: "2h",
-                }
-            );
-
-            newUser.token = token;
-            res.status(200).json(newUser)
-                .cookie("token", token,
-                    {
-                        httpOnly: true,
-                    }
-                );
-        }
-        else
-            res.status(400).send("Invalid Credentials");
-
-    }
-    catch (err) {
-        console.log(err);
-    }
+app.get('/:user/upload', (req, res) => {
+  console.log('hi sir');
+  res.send(req.params['user']);
 });
+
+app.get('/all', getall);
+
+app.post('/register', register);
+app.post('/login', login);
 module.exports = app;
